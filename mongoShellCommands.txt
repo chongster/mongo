@@ -1,0 +1,13 @@
+insert({"key": value}) where value can be anything int, string, array...etc
+
+Querying using field selection
+find({"field": value}) or find({"field1": value1, "field2": value2})
+
+Querying using $gt and $lt. This works for number values and string 
+$gt (>)	$lt (<)	$gte (>=) $lte (<=)
+find({score:{$gt:20, $lt:50}})
+find({name:{$gt: "A", $lt: "E"}})
+
+If you are querying a field that has an array of values  mongo can query inside the array 
+
+Querying using regex, $exists, $type
