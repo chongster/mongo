@@ -1,0 +1,43 @@
+Storage Engine: is the interface between the persistent storage, which we call
+the disk (ssd or hdd), and the database itself (MongoDB).
+
+So if you are writing a program in Nodejs:
+The program will use the MongoDB driver to talk to the MongoDB server to perform
+C.R.U.D tasks. The server will then talk to the storage engine, which will then
+talk to the disk. All the different structures that hold the documents, indexes,
+and metadata involving the documents are all written to the persistent storage (disk)
+by this storage engine. The storage engine may use memory to optimize the process.
+The storage engine has control over the memory on the computer, so it can decide
+what to put in memory, what to take out of memory, what to persist to disk and
+when.
+MongoDB offer a pluggable storage engine architecture, where you can use more than
+one.
+Storage engine does not affect the communication between servers. It doesn't affect
+the api that the database present to the programmer.
+
+MMAPv1
+-uses the mmap system call, which allocate memory, or map files or devices into
+memory, in order to implement storage management.
+-collection level locking(concurrency): multi readers single writer lock. Only one
+write can happen at a time to a particular collection
+-allow in place update
+-automatically allocate power of two sized documents when inserting new documents
+
+WiredTiger usually faster
+-offers document level concurrency. Only one write can happen at a time to a
+particular document
+-offers compression of data and of indexes. WiredTiger manages the memory that is
+used to access that file. It decides which blocks gets keeps in memory and which block
+to send back to disk (this is when it can perform compression).
+-no in place update. When you update a document in WiredTiger, it marks that document
+as no longer used. Then it's going to allocate new space somewhere else on the disk and
+write it there, and eventually reclaim the space that's no longer used.
+
+mongod -dpath /path/for/the/db : This is how you set the path for the database to storage files
+mongod -dpath /path/for/the/db -storageEngine wiredTiger : flags the storage engine to use wiredTiger
+
+db.collection.createIndex({some_id:1}) : Creates an index. Where 1 is ascending and -1 is descending.
+db.collection.dropIndex({some_index:1}) : Delete the some_index
+
+Multi-key indexes are when you doing a compound index e.g. ({index1:1,index2:1})
+and one of the index is an array. The restriction is that only one index can be an array
