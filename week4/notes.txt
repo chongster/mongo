@@ -41,3 +41,21 @@ db.collection.dropIndex({some_index:1}) : Delete the some_index
 
 Multi-key indexes are when you doing a compound index e.g. ({index1:1,index2:1})
 and one of the index is an array. The restriction is that only one index can be an array
+Dot notation and multi-key: just index key with dot notation or index for sub document
+Unique index: db.collection.createIndex({"some_index": 1}, {unique: true});
+Sparse index: db.collection.createIndex({"some_index": 1}, {unique: true, sparse:true});
+create unique index for a collection and ignore documents that have empty
+key values. So in other word you can have a index e.g. "c":1 where not every document
+has this "c" field
+
+Background index creation       vs         foreground index creation (default)
+slower                                     faster
+don't block reader/writer                  block reader/writer (more for deployment)
+db.col.createIndex({'index':1}, {background:true})  db.col.createIndex({'index':1})
+For advance deployment you have cluster of servers and use a not busy server to
+perform foreground index creation so it's faster
+
+explain function is use show what the database would do if it were to completely do
+a query. It doesn't actually give user the output of the query
+db.collection.explain() creates an explainable object. After the explain() it could
+be find(), update(), remove(), aggregate()...etc except insert()
