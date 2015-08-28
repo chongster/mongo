@@ -59,3 +59,39 @@ explain function is use show what the database would do if it were to completely
 a query. It doesn't actually give user the output of the query
 db.collection.explain() creates an explainable object. After the explain() it could
 be find(), update(), remove(), aggregate()...etc except insert()
+explain modes:
+queryPlanner is the default mode. It shows the steps it would take to perform
+an operation, whether it be find(), update(), remove()...etc
+executionStats include queryPlanner and additional statistics about the process
+of the operation, like # doc return, # doc examined, time it took etc...
+allPlansExecution includes the previous 2 modes
+
+When the number of total documents examined is zero, and we used an index,
+and returned results greater than zero, that is a covered query. (query satisfied entirely by an index)
+This will result in a faster query.
+
+Steps in choosing index:
+1. looks at the fields being search on aka query shape, and additional info such as sort
+2. based on the criteria in 1., mongo will id a set of candidate indexes to satisfy the query
+3. the 1st query plan to reach the goal state is the winner or 1st to get over
+a threshold but it has to be sorted. The winner will be selected as the index
+for queries of the same shape and stored in the cache.
+The cache can be updated by threshold of writes (1000 by default), rebuilding
+the index, if an index was added or dropped from collection, mongodb restarts
+
+In mongodb, it is important that we are able to fit working set, which is frequently
+access data by client, into memory, especially the index.
+db.collection.stats() to look at the size of the index (more details)
+db.colleciton.totalIndexSize() just return the size of the index
+In MongoDB 3.0 with WiredTiger there's prefix compression to make index size smaller
+
+Geospatial Indexes
+1. have something in the documents that specifies x, y coordinates
+e.g. 'location': [x.y]
+2. have an index that tells the database that there are x,y coordinates store in the document
+e.g. createIndex({"location":"2d", type:1})
+3. you can find() and call the $near operator to get all documents near that
+coordinate in increasing distance
+e.g. find({location:{$near:[x,y]}}).limit(20)
+Geospatial Spherical
+e.g. createIndex({"location":"2dsphere"})
