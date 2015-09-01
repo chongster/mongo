@@ -67,7 +67,7 @@ of the operation, like # doc return, # doc examined, time it took etc...
 allPlansExecution includes the previous 2 modes
 
 When the number of total documents examined is zero, and we used an index,
-and returned results greater than zero, that is a covered query. (query satisfied entirely by an index)
+and returned results greater than zero, that is a query. (query satisfied entirely by an index)
 This will result in a faster query.
 
 Steps in choosing index:
@@ -95,3 +95,52 @@ coordinate in increasing distance
 e.g. find({location:{$near:[x,y]}}).limit(20)
 Geospatial Spherical
 e.g. createIndex({"location":"2dsphere"})
+check geonear.js to see how to search using spherical geospatial index
+Full text search, it applies the 'or' operation on the word search
+1. you have to create the index for text search
+e.g. db.collection.createIndex({'field':'text'})
+2. search index using this
+e.g. db.collection.find({$text:{$search:'some text'}})
+It ignores cases and 'nonsignificant words' like 'a' 'the'
+If you want to look for documents with best match for all the words
+e.g. db.collection.find({$text:{$search:'dog tree obsidian'}},
+{score:{$meta:'textScore'}}).sort({score:{$meta:'textScore'}})
+
+Designing and using indexes:
+the goal is Efficient read/write operations
+- Selectivity : minimize records scanned. This means you want the totalKeysExamined
+close to the # of result return. hint() is a way to increase selectivity
+- other Operations: like how sorts are handled
+using hint() can overwrite the index selection *be very careful when using This
+e.g. db.collection.find({student_id:{$gt:500000}, class_id:54}).sort({
+student_id}).hint({class_id:54})
+
+Rules of thumb when designing index:
+equality field > sort field > range field
+
+equality field: field on which queries will perform an equality test
+sort field: field on which queries will specify a sort
+range field: field on which queries perform a range test
+
+MongoDB automatically logs all slow queries (>100 ms). You can find this in mongod
+
+Profiler systme.profile
+3 levels: 0 (off), 1 (log slow queries), 2 (log all queries, good for debugging)
+The way you set this in terminal is:
+mongod -dbpath /path/to/mongo/data/db --profile 1 --slowms 200
+db.system.profile.find().pretty()
+db.system.profile.find({millis:{$gt:1}}).sort(ts:1).pretty()
+db.getProfilingLevel() see which profiler level you are currently using
+db.setProfilingLevel(lvl, millis) where lvl is one of 3 profiler lvls and
+millis is the number of milliseconds you want to log beyond
+mongotop time , where time is the interval in second you want mongo to show
+what it's doing at the top level
+Mongostat is a performance tuning command. It samples every second and show you
+whats going in that 1 second
+different result depending on your storage engine
+
+Sharding is a technique for splitting up a large collection amongst multiple
+servers.
+Application -> mongoS (server) -> multiple mongoD (database) or multiple replica sets
+aka shard. When you are sharding you will need to know your shard keys for better
+performance otherwise mongoS will broadcast to all the shards
