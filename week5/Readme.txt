@@ -9,3 +9,6 @@ db.collection.aggregate([ //aggregate use array because there can be lot of opti
   }
 
 ])
+
+Aggregation function is a pipeline if you recall it uses [] where each element
+represents a stage in the pipeline.
